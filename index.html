@@ -115,6 +115,22 @@
         padding: 4px;
       }
     }
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: -5px;
+      margin-bottom: 10px;
+    }
+    .btn-group button {
+      flex: 1;
+      padding: 8px;
+      font-size: 14px;
+      border-radius: 6px;
+      background-color: #27ae60;
+    }
+    .btn-group button:hover {
+      background-color: #1e8449;
+    }
   </style>
 </head>
 <body>
@@ -138,6 +154,11 @@
       <button onclick="calcularMedia()">Calcular Média</button>
       <label>Média Calculada:</label>
       <input type="text" id="media_resultado" readonly />
+
+      <div class="btn-group" style="display:none;" id="btnsAdicionarMedia">
+        <button onclick="adicionarMedia('timeA')">Adicionar média para Time A</button>
+        <button onclick="adicionarMedia('timeB')">Adicionar média para Time B</button>
+      </div>
     </div>
 
     <!-- 2️⃣ Poisson Time Único -->
@@ -150,11 +171,11 @@
         <option value="segundo">2º Tempo</option>
       </select>
       <label>Média de gols marcados (Time A):</label>
-      <input type="number" id="gols_marcados" placeholder="Ex: 1.8">
+      <input type="number" id="gols_marcados" placeholder="Ex: 1.8" />
       <label>Média de gols sofridos (Time B):</label>
-      <input type="number" id="gols_sofridos" placeholder="Ex: 1.4">
+      <input type="number" id="gols_sofridos" placeholder="Ex: 1.4" />
       <label>Máximo de gols para análise:</label>
-      <input type="number" id="limite" value="5" min="1" max="10">
+      <input type="number" id="limite" value="5" min="1" max="10" />
       <button onclick="calcularPoisson()">Calcular Probabilidades</button>
       <ul id="resultado"></ul>
       <div class="resultados-extra" id="resumo_extra"></div>
@@ -164,9 +185,9 @@
     <div class="section">
       <h3>3️⃣ Placar Exato entre dois times</h3>
       <label>Média de gols esperada - Time A:</label>
-      <input type="number" id="media_a" placeholder="Ex: 1.6">
+      <input type="number" id="media_a" placeholder="Ex: 1.6" />
       <label>Média de gols esperada - Time B:</label>
-      <input type="number" id="media_b" placeholder="Ex: 1.2">
+      <input type="number" id="media_b" placeholder="Ex: 1.2" />
       <button onclick="placarExato()">Calcular Placares Exatos</button>
       <div class="resultados-extra" id="placares_tabela"></div>
     </div>
@@ -175,9 +196,9 @@
     <div class="section">
       <h3>4️⃣ Calculadora de Valor Esperado (EV)</h3>
       <label>Probabilidade (%) do Evento:</label>
-      <input type="number" id="prob_ev" placeholder="Ex: 12.7">
+      <input type="number" id="prob_ev" placeholder="Ex: 12.7" />
       <label>Odd da Casa:</label>
-      <input type="number" id="odd_ev" placeholder="Ex: 9.00">
+      <input type="number" id="odd_ev" placeholder="Ex: 9.00" />
       <button onclick="calcularEV()">Calcular EV</button>
       <div class="resultados-extra" id="resultado_ev"></div>
     </div>
@@ -218,6 +239,53 @@
       }
       const media = (gols / partidas).toFixed(2);
       document.getElementById("media_resultado").value = `${media} média de ${tipo.toLowerCase()}`;
+      // Mostrar os botões para adicionar
+      document.getElementById("btnsAdicionarMedia").style.display = "flex";
+      // Guardar média para usar nos botões
+      window.mediaCalculada = media;
+      window.tipoEvento = tipo;
+    }
+
+    function adicionarMedia(time) {
+      if (!window.mediaCalculada) {
+        alert("Calcule a média primeiro.");
+        return;
+      }
+      const media = parseFloat(window.mediaCalculada);
+      const tipo = window.tipoEvento;
+
+      // Para gols
+      if (tipo === "Gols") {
+        if (time === "timeA") {
+          document.getElementById("gols_marcados").value = media;
+          document.getElementById("media_a").value = media;
+          document.getElementById("escanteios_favor").value = "";
+          document.getElementById("escanteios_contra").value = "";
+        } else {
+          document.getElementById("gols_sofridos").value = media;
+          document.getElementById("media_b").value = media;
+          document.getElementById("escanteios_favor").value = "";
+          document.getElementById("escanteios_contra").value = "";
+        }
+      }
+      // Para escanteios
+      else if (tipo === "Escanteios") {
+        if (time === "timeA") {
+          document.getElementById("escanteios_favor").value = media;
+        } else {
+          document.getElementById("escanteios_contra").value = media;
+        }
+        // Zera campos de gols para evitar confusão
+        document.getElementById("gols_marcados").value = "";
+        document.getElementById("gols_sofridos").value = "";
+        document.getElementById("media_a").value = "";
+        document.getElementById("media_b").value = "";
+      } else {
+        alert("Adição automática só disponível para Gols e Escanteios.");
+        return;
+      }
+
+      alert(`Média ${media} adicionada para ${time === "timeA" ? "Time A" : "Time B"} (${tipo}) nas calculadoras.`);
     }
 
     function calcularPoisson() {
@@ -297,6 +365,7 @@
       const favor = parseFloat(document.getElementById("escanteios_favor").value);
       const contra = parseFloat(document.getElementById("escanteios_contra").value);
       const limite = parseInt(document.getElementById("escanteios_limite").value);
+      const periodo = document.getElementById("periodo_escanteios").value;
 
       if (isNaN(favor) || isNaN(contra)) {
         alert("Preencha as médias corretamente.");
