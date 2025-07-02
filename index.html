@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Calculadora Poisson + EV</title>
   <style>
     :root {
@@ -12,11 +12,9 @@
       --cinza: #ecf0f1;
       --texto: #2c3e50;
     }
-
     * {
       box-sizing: border-box;
     }
-
     body {
       font-family: Arial, sans-serif;
       background: var(--cinza-claro);
@@ -25,7 +23,6 @@
       display: flex;
       justify-content: center;
     }
-
     .container {
       background: #fff;
       padding: 30px;
@@ -34,19 +31,16 @@
       max-width: 700px;
       width: 100%;
     }
-
     h2, h3 {
       text-align: center;
       color: var(--texto);
     }
-
     label {
       display: block;
       margin-top: 15px;
       font-weight: bold;
       color: var(--texto);
     }
-
     input, select, button {
       width: 100%;
       padding: 10px;
@@ -56,7 +50,6 @@
       border: 1px solid #ccc;
       font-size: 16px;
     }
-
     button {
       background-color: var(--azul);
       color: white;
@@ -64,26 +57,21 @@
       cursor: pointer;
       transition: 0.3s;
     }
-
     button:hover {
       background-color: var(--azul-escuro);
     }
-
     .section {
       margin-bottom: 30px;
       border-bottom: 1px solid #eee;
       padding-bottom: 20px;
     }
-
     ul {
       padding-left: 20px;
     }
-
     li {
       margin-bottom: 5px;
       color: var(--texto);
     }
-
     .resultados-extra {
       background: var(--cinza);
       border-radius: 8px;
@@ -94,24 +82,20 @@
       color: var(--texto);
       text-align: center;
     }
-
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 10px;
     }
-
     th, td {
       border: 1px solid #ccc;
       padding: 6px;
       text-align: center;
     }
-
     th {
       background-color: var(--azul);
       color: white;
     }
-
     @media (max-width: 600px) {
       .container {
         padding: 20px;
@@ -137,7 +121,7 @@
   <div class="container">
     <h2>Calculadora Poisson + EV</h2>
 
-    <!-- Média Universal -->
+    <!-- 1️⃣ Média Universal -->
     <div class="section">
       <h3>1️⃣ Calcular Média Universal</h3>
       <label>Tipo de Evento:</label>
@@ -156,9 +140,15 @@
       <input type="text" id="media_resultado" readonly />
     </div>
 
-    <!-- Poisson Time Único -->
+    <!-- 2️⃣ Poisson Time Único -->
     <div class="section">
       <h3>2️⃣ Aplicar Poisson (Time Único)</h3>
+      <label>Período:</label>
+      <select id="periodo_poisson">
+        <option value="inteiro">Jogo Inteiro</option>
+        <option value="primeiro">1º Tempo</option>
+        <option value="segundo">2º Tempo</option>
+      </select>
       <label>Média de gols marcados (Time A):</label>
       <input type="number" id="gols_marcados" placeholder="Ex: 1.8">
       <label>Média de gols sofridos (Time B):</label>
@@ -170,7 +160,7 @@
       <div class="resultados-extra" id="resumo_extra"></div>
     </div>
 
-    <!-- Placar Exato -->
+    <!-- 3️⃣ Placar Exato -->
     <div class="section">
       <h3>3️⃣ Placar Exato entre dois times</h3>
       <label>Média de gols esperada - Time A:</label>
@@ -181,7 +171,7 @@
       <div class="resultados-extra" id="placares_tabela"></div>
     </div>
 
-    <!-- Calculadora de EV -->
+    <!-- 4️⃣ Calculadora EV -->
     <div class="section">
       <h3>4️⃣ Calculadora de Valor Esperado (EV)</h3>
       <label>Probabilidade (%) do Evento:</label>
@@ -192,20 +182,25 @@
       <div class="resultados-extra" id="resultado_ev"></div>
     </div>
 
-    <!-- Escanteios (Poisson) -->
+    <!-- 5️⃣ Previsão de Escanteios (Poisson) -->
     <div class="section">
       <h3>5️⃣ Previsão de Escanteios (Poisson)</h3>
+      <label>Período:</label>
+      <select id="periodo_escanteios">
+        <option value="inteiro">Jogo Inteiro</option>
+        <option value="primeiro">1º Tempo</option>
+        <option value="segundo">2º Tempo</option>
+      </select>
       <label>Média de escanteios a favor (Time A):</label>
-      <input type="number" id="escanteios_favor" placeholder="Ex: 6.2">
+      <input type="number" id="escanteios_favor" placeholder="Ex: 6.2" />
       <label>Média de escanteios contra (Time B):</label>
-      <input type="number" id="escanteios_contra" placeholder="Ex: 5.8">
+      <input type="number" id="escanteios_contra" placeholder="Ex: 5.8" />
       <label>Máximo de escanteios para análise:</label>
-      <input type="number" id="escanteios_limite" value="10" min="1" max="20">
+      <input type="number" id="escanteios_limite" value="10" min="1" max="20" />
       <button onclick="calcularEscanteios()">Calcular Probabilidades</button>
       <ul id="resultado_escanteios"></ul>
       <div class="resultados-extra" id="resumo_escanteios"></div>
     </div>
-
   </div>
 
   <script>
@@ -229,11 +224,13 @@
       const marcados = parseFloat(document.getElementById("gols_marcados").value);
       const sofridos = parseFloat(document.getElementById("gols_sofridos").value);
       const limite = parseInt(document.getElementById("limite").value);
+      const periodo = document.getElementById("periodo_poisson").value;
       if (isNaN(marcados) || isNaN(sofridos)) {
         alert("Preencha os campos corretamente.");
         return;
       }
 
+      // Nota: Use médias correspondentes ao período escolhido (dados já devem estar filtrados)
       const lambda = (marcados + sofridos) / 2;
       const e = Math.E;
       let html = "", over25 = 0, under25 = 0, somaBTTS = 0;
@@ -288,12 +285,12 @@
       const prob = parseFloat(document.getElementById("prob_ev").value);
       const odd = parseFloat(document.getElementById("odd_ev").value);
       if (isNaN(prob) || isNaN(odd)) {
-        alert("Preencha os valores corretamente.");
+        alert("Preencha os campos corretamente.");
         return;
       }
-      const ev = ((prob / 100) * odd - 1).toFixed(3);
-      const texto = ev > 0 ? `✅ EV Positivo: ${ev}` : `❌ EV Negativo: ${ev}`;
-      document.getElementById("resultado_ev").innerText = texto;
+      const ev = (prob / 100) * odd - 1;
+      const sinal = ev >= 0 ? "+" : "";
+      document.getElementById("resultado_ev").innerHTML = `<p>EV = ${sinal}${ev.toFixed(3)}</p>`;
     }
 
     function calcularEscanteios() {
@@ -308,16 +305,29 @@
 
       const lambda = (favor + contra) / 2;
       const e = Math.E;
-      let html = "", over85 = 0;
+      let html = "", overTotal = 0, underTotal = 0;
 
       for (let x = 0; x <= limite; x++) {
         const p = (Math.pow(lambda, x) * Math.exp(-lambda)) / fatorial(x);
         html += `<li>${x} escanteios: ${(p * 100).toFixed(2)}%</li>`;
-        if (x >= 9) over85 += p;
+        if (x <= 8) underTotal += p;
+        if (x >= 9) overTotal += p;
       }
 
       document.getElementById("resultado_escanteios").innerHTML = html;
-      document.getElementById("resumo_escanteios").innerHTML = `<p><strong>🔼 Over 8.5 escanteios:</strong> ${(over85 * 100).toFixed(2)}%</p>`;
+
+      let melhorAposta = "";
+      if (overTotal > underTotal) {
+        melhorAposta = `🔼 Melhor aposta: Over 8.5 escanteios (${(overTotal * 100).toFixed(2)}%)`;
+      } else {
+        melhorAposta = `🔽 Melhor aposta: Under 8.5 escanteios (${(underTotal * 100).toFixed(2)}%)`;
+      }
+
+      document.getElementById("resumo_escanteios").innerHTML = `
+        <p><strong>🔼 Over 8.5 escanteios:</strong> ${(overTotal * 100).toFixed(2)}%</p>
+        <p><strong>🔽 Under 8.5 escanteios:</strong> ${(underTotal * 100).toFixed(2)}%</p>
+        <p style="font-weight:bold; font-size:18px; margin-top:10px;">${melhorAposta}</p>
+      `;
     }
   </script>
 </body>
