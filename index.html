@@ -47,7 +47,7 @@
       color: var(--texto);
     }
 
-    input, button {
+    input, select, button {
       width: 100%;
       padding: 10px;
       margin-top: 5px;
@@ -119,7 +119,7 @@
       h2, h3 {
         font-size: 20px;
       }
-      input, button {
+      input, button, select {
         font-size: 15px;
         padding: 8px;
       }
@@ -137,10 +137,17 @@
   <div class="container">
     <h2>Calculadora Poisson + EV</h2>
 
-    <!-- Média de Gols -->
+    <!-- Média Universal -->
     <div class="section">
-      <h3>1️⃣ Calcular Média de Gols</h3>
-      <label>Total de Gols:</label>
+      <h3>1️⃣ Calcular Média Universal</h3>
+      <label>Tipo de Evento:</label>
+      <select id="tipo_evento">
+        <option value="Gols">Gols</option>
+        <option value="Escanteios">Escanteios</option>
+        <option value="Cartões">Cartões</option>
+        <option value="Outros">Outros</option>
+      </select>
+      <label>Total de Ocorrências:</label>
       <input type="number" id="gols" placeholder="Ex: 9" />
       <label>Total de Partidas:</label>
       <input type="number" id="partidas" placeholder="Ex: 5" />
@@ -153,11 +160,11 @@
     <div class="section">
       <h3>2️⃣ Aplicar Poisson (Time Único)</h3>
       <label>Média de gols marcados (Time A):</label>
-      <input type="number" id="gols_marcados" placeholder="Ex: 1.8" />
+      <input type="number" id="gols_marcados" placeholder="Ex: 1.8">
       <label>Média de gols sofridos (Time B):</label>
-      <input type="number" id="gols_sofridos" placeholder="Ex: 1.4" />
+      <input type="number" id="gols_sofridos" placeholder="Ex: 1.4">
       <label>Máximo de gols para análise:</label>
-      <input type="number" id="limite" value="5" min="1" max="10" />
+      <input type="number" id="limite" value="5" min="1" max="10">
       <button onclick="calcularPoisson()">Calcular Probabilidades</button>
       <ul id="resultado"></ul>
       <div class="resultados-extra" id="resumo_extra"></div>
@@ -167,24 +174,38 @@
     <div class="section">
       <h3>3️⃣ Placar Exato entre dois times</h3>
       <label>Média de gols esperada - Time A:</label>
-      <input type="number" id="media_a" placeholder="Ex: 1.6" />
+      <input type="number" id="media_a" placeholder="Ex: 1.6">
       <label>Média de gols esperada - Time B:</label>
-      <input type="number" id="media_b" placeholder="Ex: 1.2" />
+      <input type="number" id="media_b" placeholder="Ex: 1.2">
       <button onclick="placarExato()">Calcular Placares Exatos</button>
       <div class="resultados-extra" id="placares_tabela"></div>
     </div>
 
-    <!-- EV (Expected Value) -->
+    <!-- Calculadora de EV -->
     <div class="section">
-      <h3>4️⃣ Calculadora EV (Expected Value)</h3>
-      <p style="text-align:center; font-size:14px;">Fórmula: <code>EV = (Probabilidade × Odds) - 1</code></p>
-      <label>Probabilidade (%)</label>
-      <input type="number" id="probabilidade" placeholder="Ex: 12.7" min="0" max="100" step="0.01" />
-      <label>Odds</label>
-      <input type="number" id="odds" placeholder="Ex: 9.00" min="0" step="0.01" />
+      <h3>4️⃣ Calculadora de Valor Esperado (EV)</h3>
+      <label>Probabilidade (%) do Evento:</label>
+      <input type="number" id="prob_ev" placeholder="Ex: 12.7">
+      <label>Odd da Casa:</label>
+      <input type="number" id="odd_ev" placeholder="Ex: 9.00">
       <button onclick="calcularEV()">Calcular EV</button>
       <div class="resultados-extra" id="resultado_ev"></div>
     </div>
+
+    <!-- Escanteios (Poisson) -->
+    <div class="section">
+      <h3>5️⃣ Previsão de Escanteios (Poisson)</h3>
+      <label>Média de escanteios a favor (Time A):</label>
+      <input type="number" id="escanteios_favor" placeholder="Ex: 6.2">
+      <label>Média de escanteios contra (Time B):</label>
+      <input type="number" id="escanteios_contra" placeholder="Ex: 5.8">
+      <label>Máximo de escanteios para análise:</label>
+      <input type="number" id="escanteios_limite" value="10" min="1" max="20">
+      <button onclick="calcularEscanteios()">Calcular Probabilidades</button>
+      <ul id="resultado_escanteios"></ul>
+      <div class="resultados-extra" id="resumo_escanteios"></div>
+    </div>
+
   </div>
 
   <script>
@@ -193,6 +214,7 @@
     }
 
     function calcularMedia() {
+      const tipo = document.getElementById("tipo_evento").value;
       const gols = parseFloat(document.getElementById("gols").value);
       const partidas = parseFloat(document.getElementById("partidas").value);
       if (isNaN(gols) || isNaN(partidas) || partidas === 0) {
@@ -200,7 +222,7 @@
         return;
       }
       const media = (gols / partidas).toFixed(2);
-      document.getElementById("media_resultado").value = media;
+      document.getElementById("media_resultado").value = `${media} média de ${tipo.toLowerCase()}`;
     }
 
     function calcularPoisson() {
@@ -228,7 +250,7 @@
       const extraHTML = `
         <p><strong>🔼 Over 2.5 gols:</strong> ${(over25 * 100).toFixed(2)}%</p>
         <p><strong>🔽 Under 2.5 gols:</strong> ${(under25 * 100).toFixed(2)}%</p>
-        <p><strong>🎯 Chance do time marcar ao menos 1 gol:</strong> ${(somaBTTS * 100).toFixed(2)}%</p>
+        <p><strong>🤝 Chances do time marcar ao menos 1 gol (BTTS):</strong> ${(somaBTTS * 100).toFixed(2)}%</p>
       `;
       document.getElementById("resumo_extra").innerHTML = extraHTML;
     }
@@ -263,23 +285,39 @@
     }
 
     function calcularEV() {
-      const probPercent = parseFloat(document.getElementById("probabilidade").value);
-      const odds = parseFloat(document.getElementById("odds").value);
-
-      if (isNaN(probPercent) || probPercent < 0 || probPercent > 100) {
-        alert("Digite uma probabilidade válida entre 0 e 100%");
+      const prob = parseFloat(document.getElementById("prob_ev").value);
+      const odd = parseFloat(document.getElementById("odd_ev").value);
+      if (isNaN(prob) || isNaN(odd)) {
+        alert("Preencha os valores corretamente.");
         return;
       }
-      if (isNaN(odds) || odds <= 0) {
-        alert("Digite uma odd válida maior que zero");
+      const ev = ((prob / 100) * odd - 1).toFixed(3);
+      const texto = ev > 0 ? `✅ EV Positivo: ${ev}` : `❌ EV Negativo: ${ev}`;
+      document.getElementById("resultado_ev").innerText = texto;
+    }
+
+    function calcularEscanteios() {
+      const favor = parseFloat(document.getElementById("escanteios_favor").value);
+      const contra = parseFloat(document.getElementById("escanteios_contra").value);
+      const limite = parseInt(document.getElementById("escanteios_limite").value);
+
+      if (isNaN(favor) || isNaN(contra)) {
+        alert("Preencha as médias corretamente.");
         return;
       }
 
-      const probDecimal = probPercent / 100;
-      const ev = (probDecimal * odds) - 1;
-      const evFormatado = ev.toFixed(3);
-      const sinal = ev > 0 ? "+" : "";
-      document.getElementById("resultado_ev").textContent = `EV = ${sinal}${evFormatado}`;
+      const lambda = (favor + contra) / 2;
+      const e = Math.E;
+      let html = "", over85 = 0;
+
+      for (let x = 0; x <= limite; x++) {
+        const p = (Math.pow(lambda, x) * Math.exp(-lambda)) / fatorial(x);
+        html += `<li>${x} escanteios: ${(p * 100).toFixed(2)}%</li>`;
+        if (x >= 9) over85 += p;
+      }
+
+      document.getElementById("resultado_escanteios").innerHTML = html;
+      document.getElementById("resumo_escanteios").innerHTML = `<p><strong>🔼 Over 8.5 escanteios:</strong> ${(over85 * 100).toFixed(2)}%</p>`;
     }
   </script>
 </body>
